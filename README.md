@@ -9,7 +9,3 @@ Below are the instructions to run the project
 ```bash
 pip install -r requirements.txt
 ```
-
-2. Run the project
-
-```bash

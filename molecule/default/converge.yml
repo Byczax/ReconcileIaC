@@ -1,12 +1,29 @@
----
-- name: Converge
-  hosts: all
-
+- name: Fail if molecule group is missing
+  hosts: localhost
   tasks:
-    - name: Update apt cache (on Debian).
-      ansible.builtin.apt:
-        update_cache: true
-        cache_valid_time: 3600
-      when: ansible_os_family == 'Debian'
+    - name: Print some info
+      ansible.builtin.debug:
+        msg: "{{ groups }}"
 
-- ansible.builtin.import_playbook: ../../main.yml
+    - name: Assert group existence
+      ansible.builtin.assert:
+        that: "'molecule' in groups"
+        fail_msg: |
+          molecule group was not found inside inventory groups: {{ groups }}
+
+- name: Converge
+  hosts: molecule
+  # We disable gather facts because it would fail due to our container not
+  # having python installed. This will not prevent use from running 'raw'
+  # commands. Most molecule users are expected to use containers that already
+  # have python installed in order to avoid notable delays installing it.
+  gather_facts: false
+  tasks:
+    - name: Check uname
+      ansible.builtin.raw: uname -a
+      register: result
+      changed_when: false
+
+    - name: Print some info
+      ansible.builtin.assert:
+        that: result.stdout | regex_search("^Linux")

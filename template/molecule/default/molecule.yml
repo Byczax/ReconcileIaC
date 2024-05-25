@@ -9,11 +9,7 @@ lint: |
   yamllint .
   ansible-lint
 platforms:
-  -name: debian
-   image: debian:trixie-slim
-  -name: rockylinux
-   image: rockylinux:9.3.20231119-minimal
-
+# FOUND_SYSTEMS #
 provisioner:
   name: ansible
 verifier:

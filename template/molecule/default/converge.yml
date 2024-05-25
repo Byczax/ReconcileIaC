@@ -13,10 +13,6 @@
 
 - name: Converge
   hosts: molecule
-  # We disable gather facts because it would fail due to our container not
-  # having python installed. This will not prevent use from running 'raw'
-  # commands. Most molecule users are expected to use containers that already
-  # have python installed in order to avoid notable delays installing it.
   gather_facts: false
   tasks:
     - name: Check uname
@@ -27,3 +23,15 @@
     - name: Print some info
       ansible.builtin.assert:
         that: result.stdout | regex_search("^Linux")
+
+    - name: Install Python
+      raw: "(apt-get update && apt-get install -y python3-minimal) || (dnf install -y python) || (apk add python3)"
+      changed_when: false
+
+    - name: Now gather facts
+      gather_facts: {}
+
+    # - name: Install Python - 
+    
+    - name: Include main playbook
+      include_tasks: ../../main.yml

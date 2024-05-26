@@ -3,3 +3,4 @@ molecule[docker]
 molecule-plugins[docker]
 yamllint
 ansible-lint
+bs4

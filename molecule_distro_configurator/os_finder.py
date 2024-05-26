@@ -1,6 +1,5 @@
 import re
 import os
-from distro_fetcher import fetcher
 
 def find_md_files(root_folder):
     files = []
@@ -40,17 +39,26 @@ def match_operating_systems(file, operating_systems):
     # color print
     # print(f"\033[92m{matched_os}\033[0m")
     
+    #! EXCEPTIONS
+    if "centos" in matched_os:
+        matched_os.remove("centos")
+        matched_os.append("rockylinux")
+        
+    if "ubuntu" not in matched_os:
+        print("\033[93mAdding default (ubuntu)...\033[0m")
+        matched_os.append("ubuntu")
+    
     return matched_os
 
-if __name__ == "__main__":
-    files = find_md_files('examples/ansible-examples-master')
-    print("=== FOUND FILES ===")
+# if __name__ == "__main__":
+#     files = find_md_files('examples/ansible-examples-master')
+#     print("=== FOUND FILES ===")
     
-    operating_systems = fetcher()
-    print("=== FOUND OPERATING SYSTEMS ===")
-    for file in files:
-        matches = match_operating_systems(file, operating_systems)
-        print(f"\033[92m{matches}\033[0m")
+#     operating_systems = fetcher()
+#     print("=== FOUND OPERATING SYSTEMS ===")
+#     for file in files:
+#         matches = match_operating_systems(file, operating_systems)
+#         print(f"\033[92m{matches}\033[0m")
     
 
 

@@ -31,7 +31,3 @@
     - name: Now gather facts
       gather_facts: {}
 
-    # - name: Install Python - 
-    
-    - name: Include main playbook
-      include_tasks: ../../main.yml

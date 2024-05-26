@@ -1,9 +1,12 @@
 import requests
 from datetime import datetime
-import os
-from distro_fetcher import fetcher
-from os_finder import find_md_files, match_operating_systems
+import os, shutil
+from molecule_distro_configurator.distro_fetcher import fetcher
+from molecule_distro_configurator.os_finder import find_md_files, match_operating_systems
 from distutils.dir_util import copy_tree
+
+BASE_PATH = "molecule_distro_configurator"
+BASE_PROJECT_PATH = "ansible-tester"
 
 def fetch_docker_images(os_list):
     base_url = "https://hub.docker.com/v2/repositories/library/"
@@ -57,44 +60,64 @@ def write_to_molecule(tags):
             continue
         molecule_systems += f"  - name: {entry}\n"
         molecule_systems += f"    image: {entry}:{tags[entry]}\n"
-    copy_tree("../template/molecule", "../molecule")
+    copy_tree(BASE_PATH + "/template/molecule", BASE_PROJECT_PATH + "/molecule")
     # os.system("mkdir -p ../molecule/default")
 
-    with open("../template/molecule/default/molecule.yml", "r") as infile, open(
-        "../molecule/default/molecule.yml", "w+"
+    with open(BASE_PATH + "/template/molecule/default/molecule.yml", "r") as infile, open(
+        BASE_PROJECT_PATH + "/molecule/default/molecule.yml", "w+"
     ) as outfile:
         data = infile.read()
-        print(data)
         data = data.replace("# FOUND_SYSTEMS #", molecule_systems)
 
         outfile.write(data)
 
 
-if __name__ == "__main__":
-    #TODO remove it, replace with normal file reader, commented below
-    files = find_md_files("../examples/ansible-examples-master")
-    # file = sys.argv[1]
+def find_yaml_project_file(project_path):
     
-    operating_systems = fetcher()
-    #! EXCEPTIONS
-    operating_systems.append("RHEL")
+    yaml_files = []
+    for file in os.listdir(project_path):
+        if file.endswith(('.yaml', '.yml')):
+            yaml_files.append(os.path.join(project_path, file))
+    return yaml_files
+    
+def write_to_converge(yaml_files):
+    to_append = ''
+    for file in yaml_files:
+        basename = os.path.basename(file)
+        to_append += f"    - name: Include playbook {basename}\n"
+        to_append += f"      ansible.builtin.import_playbook: {basename}\n\n"
+        
+        shutil.copy(file, f"{BASE_PROJECT_PATH}/{basename}")
+    with open(f"{BASE_PROJECT_PATH}/molecule/default/converge.yml", "a") as converge_file:
+        converge_file.write(to_append)
+        
+    
+    
 
-    file = files[6]
+def run_script(project_path):
+    # files = find_md_files("../examples/ansible-examples-master")
+    files = find_md_files(project_path)
+    file = files[0]
+    operating_systems = fetcher(BASE_PATH)
+
+    print("AAA")
     matches = match_operating_systems(file, operating_systems)
-    #! EXCEPTIONS
-    if "centos" in matches:
-        matches.remove("centos")
-        matches.append("rockylinux")
-
     print(f"\033[92m{matches}\033[0m")
-    
-    if matches == []:
-        print("\033[91mNo OS found in the file\033[0m")
-        print("\033[93mAdding default (ubuntu)...\033[0m")
-        matches.append("ubuntu")
 
     tags = fetch_docker_images(matches)
+    if not tags:
+        print("\033[91mNo tags found\033[0m")
+        return False
     print(f"\033[95m{tags}\033[0m")
-    print("===")
 
     write_to_molecule(tags)
+    
+    yaml_files = find_yaml_project_file(project_path)
+    if not yaml_files:
+        print("\033[91mNo YAML file found in the project path\033[0m")
+        return False
+    
+    write_to_converge(yaml_files)
+    
+    
+    return True

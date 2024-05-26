@@ -1,0 +1,25 @@
+---
+- name: Create, write, copy, and delete file
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Create file
+      file:
+        path: file.txt
+        state: touch
+
+    - name: Write into file
+      lineinfile:
+        path: file.txt
+        line: "Hello, world!"
+
+    - name: Copy file to another folder
+      copy:
+        src: file.txt
+        dest: copy.txt
+
+    - name: Delete file
+      file:
+        path: file.txt
+        state: absent

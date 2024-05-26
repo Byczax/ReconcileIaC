@@ -39,7 +39,7 @@ def run_molecule_distro_configurator(
             project_path = configurator_script.BASE_PROJECT_PATH
             # change os directory
             os.chdir(project_path)
-            result = subprocess.run(["molecule", "-vvv", "test"], check=True)
+            result = subprocess.run(["molecule", "test"], check=True)
             print(
                 f"{GREEN}[MolDiCo] 'molecule test' completed with return code: {result.returncode}{RESET}"
             )

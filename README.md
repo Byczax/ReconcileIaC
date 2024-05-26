@@ -37,3 +37,13 @@ Or even combine two
 ```bash
 molecule --debug -vvv test
 ```
+
+
+## FAQ
+
+P: My project is throwing this error:
+```bash
+CRITICAL 'molecule/default/molecule.yml' glob failed.  Exiting.
+```
+A: Check if your project folder is NOT in `.gitignore`. If it is, remove it from .gitignore and try again.
+Here is the [source](https://github.com/ansible/molecule/issues/4117#issuecomment-2036386679) of the solution.

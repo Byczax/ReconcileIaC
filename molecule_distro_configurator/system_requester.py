@@ -3,7 +3,7 @@ from datetime import datetime
 import os
 from distro_fetcher import fetcher
 from os_finder import find_md_files, match_operating_systems
-
+from distutils.dir_util import copy_tree
 
 def fetch_docker_images(os_list):
     base_url = "https://hub.docker.com/v2/repositories/library/"
@@ -55,10 +55,10 @@ def write_to_molecule(tags):
         if tags[entry] is None:
             print(f"\033[91mNo tag found for {entry}\033[0m")
             continue
-        molecule_systems += f"  -name: {entry}\n"
-        molecule_systems += f"   image: {entry}:{tags[entry]}\n"
-
-    os.system("mkdir -p ../molecule/default")
+        molecule_systems += f"\t- name: {entry}\n"
+        molecule_systems += f"\t\timage: {entry}:{tags[entry]}\n"
+    copy_tree("../template/molecule", "../molecule")
+    # os.system("mkdir -p ../molecule/default")
 
     with open("../template/molecule/default/molecule.yml", "r") as infile, open(
         "../molecule/default/molecule.yml", "w+"
@@ -87,6 +87,11 @@ if __name__ == "__main__":
         matches.append("rockylinux")
 
     print(f"\033[92m{matches}\033[0m")
+    
+    if matches == []:
+        print("\033[91mNo OS found in the file\033[0m")
+        print("\033[93mAdding default (ubuntu)...\033[0m")
+        matches.append("ubuntu")
 
     tags = fetch_docker_images(matches)
     print(f"\033[95m{tags}\033[0m")

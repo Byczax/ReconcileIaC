@@ -92,6 +92,14 @@ def find_yaml_project_file(project_path):
 def write_to_converge(yaml_files):
     to_append = ""
     for file in yaml_files:
+        # open file and check content, to see if it's valid ansible syntax
+        with open(file, "r") as f:
+            content = f.read()
+            if "hosts:" not in content or "tasks:" not in content:
+                print(
+                    f"\033[91m[MolDiCo] File {file} does not contain any hosts or tasks. Skipping.\033[0m"
+                )
+                continue
         basename = os.path.basename(file)
         to_append += f"- name: Include playbook {basename}\n"
         to_append += f"  ansible.builtin.import_playbook: ../../{basename}\n\n"

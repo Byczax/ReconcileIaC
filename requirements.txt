@@ -4,3 +4,4 @@ molecule-plugins[docker]
 yamllint
 ansible-lint
 bs4
+requests

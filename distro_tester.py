@@ -11,17 +11,17 @@ BLUE = "\033[94m"
 RESET = "\033[0m"
 
 
-def run_molecule_distro_configurator(ansible_project_path, run_tests):
+def run_molecule_distro_configurator(ansible_project_path, run_tests, clean):
     configurator_path = os.path.join(os.getcwd(), "molecule_distro_configurator")
 
     if not os.path.exists(ansible_project_path):
         print(
-            f"{RED}The specified Ansible project path does not exist: {ansible_project_path}{RESET}"
+            f"{RED}[MolDiCo] The specified Ansible project path does not exist: {ansible_project_path}{RESET}"
         )
         sys.exit(1)
 
     if not os.path.exists(configurator_path):
-        print(f"{RED}The configurator path does not exist: {configurator_path}{RESET}")
+        print(f"{RED}[MolDiCo] The configurator path does not exist: {configurator_path}{RESET}")
         sys.exit(1)
 
     try:
@@ -29,19 +29,26 @@ def run_molecule_distro_configurator(ansible_project_path, run_tests):
 
         # Optionally run molecule test
         if run_tests and result:
-            print(f"{BLUE}Running 'molecule test'...{RESET}")
+            print(f"{BLUE}[MolDiCo] Running 'molecule test'...{RESET}")
             # change os directory
             os.chdir(configurator_script.BASE_PROJECT_PATH)
             result = subprocess.run(["molecule", "test"], check=True)
             print(
-                f"{GREEN}'molecule test' completed with return code: {result.returncode}{RESET}"
+                f"{GREEN}[MolDiCo] 'molecule test' completed with return code: {result.returncode}{RESET}"
             )
+            
+        if clean:
+            try:
+                shutil.rmtree(directory_path)
+                print(f"[MolDiCo] Directory '{directory_path}' and its contents have been successfully removed.")
+            except OSError as e:
+                print(f"[MolDiCo] Error: {directory_path} : {e.strerror}")
 
     except subprocess.CalledProcessError as e:
-        print(f"{RED}An error occurred while running the command: {e}{RESET}")
+        print(f"{RED}[MolDiCo] An error occurred while running the command: {e}{RESET}")
         sys.exit(1)
     except Exception as e:
-        print(f"{RED}An unexpected error occurred: {e}{RESET}")
+        print(f"{RED}[MolDiCo] An unexpected error occurred: {e}{RESET}")
         sys.exit(1)
 
 
@@ -55,6 +62,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--test", action="store_true", help='Automatically run "molecule test".'
     )
+    parser.add_argument(
+        "--clean", action="store_true", help="Remove all generated files."
+    )
 
     args = parser.parse_args()
-    run_molecule_distro_configurator(args.ansible_project_path, args.test)
+    run_molecule_distro_configurator(args.ansible_project_path, args.test, args.clean)

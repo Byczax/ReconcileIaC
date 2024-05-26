@@ -96,11 +96,21 @@ def write_to_converge(yaml_files):
         to_append += f"- name: Include playbook {basename}\n"
         to_append += f"  ansible.builtin.import_playbook: ../../{basename}\n\n"
 
-        shutil.copy(file, f"{BASE_PROJECT_PATH}/{basename}")
     with open(
         f"{BASE_PROJECT_PATH}/molecule/default/converge.yml", "a"
     ) as converge_file:
         converge_file.write(to_append)
+
+
+def copy_files_to_test_dir(src_dir, dst_dir=BASE_PROJECT_PATH):
+    for item in os.listdir(src_dir):
+        src_path = os.path.join(src_dir, item)
+        dst_path = os.path.join(dst_dir, item)
+
+        if os.path.isdir(src_path):
+            shutil.copytree(src_path, dst_path)
+        elif os.path.isfile(src_path):
+            shutil.copy2(src_path, dst_path)
 
 
 def run_script(project_path):
@@ -118,6 +128,8 @@ def run_script(project_path):
     print(f"\033[95m[MolDiCo] {tags}\033[0m")
 
     write_to_molecule(tags)
+
+    copy_files_to_test_dir(project_path)
 
     yaml_files = find_yaml_project_file(project_path)
     if not yaml_files:

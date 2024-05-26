@@ -89,8 +89,47 @@ def find_yaml_project_file(project_path):
     return yaml_files
 
 
-def write_to_converge(yaml_files):
-    to_append = ""
+def write_to_converge(yaml_files, interferer_flags):
+    to_append = "\n"
+
+    # Add (hardcoded) interference (POC)
+
+    if "--uninstall_package" in interferer_flags:
+        to_append += f"    - name: Uninstall package\n"
+        to_append += f"      ansible.builtin.package:\n"
+        to_append += f"        name: apache2\n"
+        to_append += f"        state: absent\n\n"
+
+    if "--stop_service" in interferer_flags:
+        to_append += f"    - name: Stop service\n"
+        to_append += f"      ansible.builtin.service:\n"
+        to_append += f"        name: apache2\n"
+        to_append += f"        state: stopped\n\n"
+
+    if "--change_file_ownership" in interferer_flags:
+        to_append += f"    - name: Change file ownership\n"
+        to_append += f"      ansible.builtin.file:\n"
+        to_append += f"        path: /etc/hosts\n"
+        to_append += f"        owner: root\n"
+        to_append += f"        group: root\n\n"
+
+    if "--change_file_permissions" in interferer_flags:
+        to_append += f"    - name: Change file permissions\n"
+        to_append += f"      ansible.builtin.file:\n"
+        to_append += f"        path: /etc/hosts\n"
+        to_append += f"        mode: '0644'\n\n"
+
+    # Found no way to use ifconfig with elevated privileges
+    if "--bring_network_interface_down" in interferer_flags:
+        to_append += f"    - name: Install ifconfig\n"
+        to_append += f"      ansible.builtin.package:\n"
+        to_append += f"        name: net-tools\n"
+        to_append += f"        state: present\n"
+        to_append += f"\n"
+        to_append += f"    - name: Bring network interface down\n"
+        to_append += f"      command: ifconfig eth0 down\n"
+        to_append += f"      become: true\n\n"
+
     for file in yaml_files:
         # open file and check content, to see if it's valid ansible syntax
         with open(file, "r") as f:
@@ -121,7 +160,7 @@ def copy_files_to_test_dir(src_dir, dst_dir=BASE_PROJECT_PATH):
             shutil.copy2(src_path, dst_path)
 
 
-def run_script(project_path):
+def run_script(project_path, interferer_flags):
     files = find_md_files(project_path)
     file = files[0]
     operating_systems = fetcher(BASE_PATH)
@@ -144,6 +183,6 @@ def run_script(project_path):
         print("\033[91m[MolDiCo] No YAML file found in the project path\033[0m")
         return False
 
-    write_to_converge(yaml_files)
+    write_to_converge(yaml_files, interferer_flags)
 
     return True

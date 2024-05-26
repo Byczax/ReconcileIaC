@@ -30,8 +30,10 @@ def run_molecule_distro_configurator(ansible_project_path, run_tests, clean):
         # Optionally run molecule test
         if run_tests and result:
             print(f"{BLUE}[MolDiCo] Running 'molecule test'...{RESET}")
+
+            project_path = configurator_script.BASE_PROJECT_PATH
             # change os directory
-            os.chdir(configurator_script.BASE_PROJECT_PATH)
+            os.chdir(project_path)
             result = subprocess.run(["molecule", "test"], check=True)
             print(
                 f"{GREEN}[MolDiCo] 'molecule test' completed with return code: {result.returncode}{RESET}"
@@ -39,10 +41,10 @@ def run_molecule_distro_configurator(ansible_project_path, run_tests, clean):
             
         if clean:
             try:
-                shutil.rmtree(directory_path)
-                print(f"[MolDiCo] Directory '{directory_path}' and its contents have been successfully removed.")
+                shutil.rmtree(project_path)
+                print(f"[MolDiCo] Directory '{project_path}' and its contents have been successfully removed.")
             except OSError as e:
-                print(f"[MolDiCo] Error: {directory_path} : {e.strerror}")
+                print(f"[MolDiCo] Error: {project_path} : {e.strerror}")
 
     except subprocess.CalledProcessError as e:
         print(f"{RED}[MolDiCo] An error occurred while running the command: {e}{RESET}")

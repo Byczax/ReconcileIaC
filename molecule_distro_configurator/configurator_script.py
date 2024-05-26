@@ -2,11 +2,15 @@ import requests
 from datetime import datetime
 import os, shutil
 from molecule_distro_configurator.distro_fetcher import fetcher
-from molecule_distro_configurator.os_finder import find_md_files, match_operating_systems
+from molecule_distro_configurator.os_finder import (
+    find_md_files,
+    match_operating_systems,
+)
 from distutils.dir_util import copy_tree
 
 BASE_PATH = "molecule_distro_configurator"
 BASE_PROJECT_PATH = "ansible-tester"
+
 
 def fetch_docker_images(os_list):
     base_url = "https://hub.docker.com/v2/repositories/library/"
@@ -61,9 +65,10 @@ def write_to_molecule(tags):
         molecule_systems += f"  - name: {entry}\n"
         molecule_systems += f"    image: {entry}:{tags[entry]}\n"
     copy_tree(BASE_PATH + "/template/molecule", BASE_PROJECT_PATH + "/molecule")
-    # os.system("mkdir -p ../molecule/default")
 
-    with open(BASE_PATH + "/template/molecule/default/molecule.yml", "r") as infile, open(
+    with open(
+        BASE_PATH + "/template/molecule/default/molecule.yml", "r"
+    ) as infile, open(
         BASE_PROJECT_PATH + "/molecule/default/molecule.yml", "w+"
     ) as outfile:
         data = infile.read()
@@ -73,34 +78,33 @@ def write_to_molecule(tags):
 
 
 def find_yaml_project_file(project_path):
-    
+
     yaml_files = []
     for file in os.listdir(project_path):
-        if file.endswith(('.yaml', '.yml')):
+        if file.endswith((".yaml", ".yml")):
             yaml_files.append(os.path.join(project_path, file))
     return yaml_files
-    
+
+
 def write_to_converge(yaml_files):
-    to_append = ''
+    to_append = ""
     for file in yaml_files:
         basename = os.path.basename(file)
         to_append += f"    - name: Include playbook {basename}\n"
         to_append += f"      ansible.builtin.import_playbook: {basename}\n\n"
-        
+
         shutil.copy(file, f"{BASE_PROJECT_PATH}/{basename}")
-    with open(f"{BASE_PROJECT_PATH}/molecule/default/converge.yml", "a") as converge_file:
+    with open(
+        f"{BASE_PROJECT_PATH}/molecule/default/converge.yml", "a"
+    ) as converge_file:
         converge_file.write(to_append)
-        
-    
-    
+
 
 def run_script(project_path):
-    # files = find_md_files("../examples/ansible-examples-master")
     files = find_md_files(project_path)
     file = files[0]
     operating_systems = fetcher(BASE_PATH)
 
-    print("AAA")
     matches = match_operating_systems(file, operating_systems)
     print(f"\033[92m{matches}\033[0m")
 
@@ -111,13 +115,12 @@ def run_script(project_path):
     print(f"\033[95m{tags}\033[0m")
 
     write_to_molecule(tags)
-    
+
     yaml_files = find_yaml_project_file(project_path)
     if not yaml_files:
         print("\033[91mNo YAML file found in the project path\033[0m")
         return False
-    
+
     write_to_converge(yaml_files)
-    
-    
+
     return True

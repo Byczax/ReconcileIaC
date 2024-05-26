@@ -55,8 +55,8 @@ def write_to_molecule(tags):
         if tags[entry] is None:
             print(f"\033[91mNo tag found for {entry}\033[0m")
             continue
-        molecule_systems += f"\t- name: {entry}\n"
-        molecule_systems += f"\t\timage: {entry}:{tags[entry]}\n"
+        molecule_systems += f"  - name: {entry}\n"
+        molecule_systems += f"    image: {entry}:{tags[entry]}\n"
     copy_tree("../template/molecule", "../molecule")
     # os.system("mkdir -p ../molecule/default")
 

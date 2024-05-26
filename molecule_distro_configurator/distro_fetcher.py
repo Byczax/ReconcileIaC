@@ -38,12 +38,12 @@ def fetcher(base_path):
 
     if os.path.isfile(fetched_dists_file):
         with open(fetched_dists_file, "r") as cached:
-            print("using cached file %s/%s" % (outputdir, fetched_dists_file))
+            print("[MolDiCo] using cached file %s/%s" % (outputdir, fetched_dists_file))
             son = json.loads(cached.read())
             distros = son
     if son == "":
         url = base_url
-        print("fetching distros from %s" % url)
+        print("[MolDiCo] fetching distros from %s" % url)
         son = fetch_dist_list_from(url, search_options)
         for element in son:
             link = element.find("a")
